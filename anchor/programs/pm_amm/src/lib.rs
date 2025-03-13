@@ -1,70 +1,64 @@
-#![allow(clippy::result_large_err)]
+pub mod error;
+pub mod instructions;
+pub mod state;
+pub mod utils;
 
 use anchor_lang::prelude::*;
 
-declare_id!("coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF");
+use instructions::*;
+
+declare_id!("CNqGv5P92gnmnFEHqk2csdw1v8by2U5Q1CVwZZbBnguE");
+
+const PRECISION: u128 = 1_000_000_000;
 
 #[program]
 pub mod pm_amm {
     use super::*;
 
-  pub fn close(_ctx: Context<ClosePmAmm>) -> Result<()> {
-    Ok(())
-  }
+    pub fn initialize(ctx: Context<InitializeAdmin>) -> Result<()> {
+        init_admin_state(ctx)
+    }
 
-  pub fn decrement(ctx: Context<Update>) -> Result<()> {
-    ctx.accounts.pm_amm.count = ctx.accounts.pm_amm.count.checked_sub(1).unwrap();
-    Ok(())
-  }
+    pub fn create_bet_account(
+        ctx: Context<CreateBet>,
+        bet_id: u64,
+        initial_liq: u128,
+        bet_prompt: String,
+        expiration_at: i64,
+    ) -> Result<()> {
+        create_bet(ctx, bet_id, initial_liq, bet_prompt, expiration_at)
+    }
 
-  pub fn increment(ctx: Context<Update>) -> Result<()> {
-    ctx.accounts.pm_amm.count = ctx.accounts.pm_amm.count.checked_add(1).unwrap();
-    Ok(())
-  }
+    pub fn init_bet_account(ctx: Context<InitBet>, bet_id: u64) -> Result<()> {
+        init_bet(ctx, bet_id)
+    }
 
-  pub fn initialize(_ctx: Context<InitializePmAmm>) -> Result<()> {
-    Ok(())
-  }
+    pub fn get_price(ctx: Context<GetPrice>, outcome: u8) -> Result<u64> {
+        get_price_instruction(ctx, outcome)
+    }
 
-  pub fn set(ctx: Context<Update>, value: u8) -> Result<()> {
-    ctx.accounts.pm_amm.count = value.clone();
-    Ok(())
-  }
-}
+    // / Buy shares of a bet, 0 for yes, 1 for no and q for quantity of shares.
+    pub fn buy(ctx: Context<Buy>, bet_id: u64, outcome: u8, q: u128) -> Result<()> {
+        buy_instruction(ctx, bet_id, outcome, q)
+    }
 
-#[derive(Accounts)]
-pub struct InitializePmAmm<'info> {
-  #[account(mut)]
-  pub payer: Signer<'info>,
+    /// Sell shares of a bet, 0 for yes, 1 for no and q for quantity of shares.
+    pub fn sell(ctx: Context<Sell>, bet_id: u64, outcome: u8, q: u128) -> Result<()> {
+        sell_instruction(ctx, bet_id, outcome, q)
+    }
 
-  #[account(
-  init,
-  space = 8 + PmAmm::INIT_SPACE,
-  payer = payer
-  )]
-  pub pm_amm: Account<'info, PmAmm>,
-  pub system_program: Program<'info, System>,
-}
-#[derive(Accounts)]
-pub struct ClosePmAmm<'info> {
-  #[account(mut)]
-  pub payer: Signer<'info>,
+    /// Only the settle_pubkey from `Admin` can call this function.
+    pub fn settle_bet(ctx: Context<SettleBet>, bet_id: u64, side_won: u8) -> Result<()> {
+        settle_bet_instruction(ctx, bet_id, side_won)
+    }
 
-  #[account(
-  mut,
-  close = payer, // close account and return lamports to payer
-  )]
-  pub pm_amm: Account<'info, PmAmm>,
-}
-
-#[derive(Accounts)]
-pub struct Update<'info> {
-  #[account(mut)]
-  pub pm_amm: Account<'info, PmAmm>,
-}
-
-#[account]
-#[derive(InitSpace)]
-pub struct PmAmm {
-  count: u8,
+    /// Withdraw shares after bet has been settled
+    pub fn withdraw_post_settle(
+        ctx: Context<WithdrawPostSettle>,
+        bet_id: u64,
+        outcome: u8,
+        q: u128,
+    ) -> Result<()> {
+        withdraw_post_settle_instruction(ctx, bet_id, outcome, q)
+    }
 }
