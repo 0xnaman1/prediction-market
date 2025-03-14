@@ -1,5 +1,5 @@
-import DashboardFeature from '@/components/dashboard/dashboard-feature'
+import PmAmmFeature from "@/components/pm_amm/pm_amm-feature";
 
 export default function Page() {
-  return <DashboardFeature />
+  return <PmAmmFeature />;
 }

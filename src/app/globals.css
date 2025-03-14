@@ -2,18 +2,84 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 html,
 body {
   height: 100%;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #131518;
 }
 
-.wallet-adapter-button-trigger {
-  background: rgb(100, 26, 230) !important;
-  border-radius: 8px !important;
-  padding-left: 16px !important;
-  padding-right: 16px !important;
+#__next {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
+
+/* Custom gradient text utility */
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r;
+}
+
+/* Custom button styles */
+.wallet-adapter-button-trigger {
+  background: linear-gradient(to right, rgb(111, 66, 193), rgb(85, 66, 193)) !important;
+  border-radius: 12px !important;
+  padding: 16px 24px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease-in-out !important;
+  box-shadow: 0 4px 12px rgba(111, 66, 193, 0.15) !important;
+}
+
+.wallet-adapter-button-trigger:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 16px rgba(111, 66, 193, 0.25) !important;
+}
+
 .wallet-adapter-dropdown-list,
 .wallet-adapter-button {
-  font-family: inherit !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+/* Custom animations */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Full screen background styles */
+.bg-stars {
+  background-image: url('/star.png');
+  background-repeat: repeat;
+  background-size: 1000px;
+  background-position: center;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+
+/* Layout adjustments */
+.main-content {
+  padding-top: 4rem; /* 64px - matches navbar height */
+  min-height: calc(100vh - 4rem);
+  display: flex;
+  flex-direction: column;
 }
