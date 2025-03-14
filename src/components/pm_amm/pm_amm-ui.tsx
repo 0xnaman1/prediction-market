@@ -1,7 +1,7 @@
 "use client";
 
 import { Keypair, PublicKey } from "@solana/web3.js";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { ellipsify } from "../ui/ui-layout";
 import { ExplorerLink } from "../cluster/cluster-ui";
 import { usePmAmmProgram, usePmAmmProgramAccount } from "./pm_amm-data-access";
@@ -143,13 +143,19 @@ export function PmAmmList() {
 
 function PmAmmCard({ account }: { account: PublicKey }) {
   const [amount, setAmount] = useState(0);
-  const { accountQuery, initBet, buyYes } = usePmAmmProgramAccount({
-    account,
-  });
+  const { accountQuery, initBet, buyYes, getYesPrice, getNoPrice } =
+    usePmAmmProgramAccount({
+      account,
+    });
 
   const betId = useMemo(
     () => accountQuery.data?.betId ?? 0,
     [accountQuery.data?.betId]
+  );
+
+  const creator = useMemo(
+    () => accountQuery.data?.creator.toString() ?? "",
+    [accountQuery.data?.creator]
   );
 
   const betPrompt = useMemo(
@@ -167,16 +173,26 @@ function PmAmmCard({ account }: { account: PublicKey }) {
     [accountQuery.data?.isInitialized]
   );
 
+  const yesPrice = useMemo(() => {
+    if (!getYesPrice.data) return null;
+    return (Number(getYesPrice.data) / 1_000_000_000).toFixed(2);
+  }, [getYesPrice.data]);
+
+  const noPrice = useMemo(() => {
+    if (!getNoPrice.data) return null;
+    return (Number(getNoPrice.data) / 1_000_000_000).toFixed(2);
+  }, [getNoPrice.data]);
+
   const handleInitialize = () => {
     initBet.mutateAsync({ betId: Number(betId) });
   };
 
-  const handleBuy = () => {
+  const handleBuyYes = () => {
     buyYes.mutateAsync({ betId: Number(betId), outcome: 0, amount });
   };
 
-  const handleSell = () => {
-    // Add your sell logic here
+  const handleBuyNo = () => {
+    // buyNo.mutateAsync({ betId: Number(betId), outcome: 1, amount });
   };
 
   expiration = parseInt(expiration.toString());
@@ -201,20 +217,24 @@ function PmAmmCard({ account }: { account: PublicKey }) {
         <p className="text-lg text-gray-200">{betPrompt}</p>
 
         {!isInitialized ? (
-          <Button
-            className="w-full bg-[#6E56CF] hover:bg-[#7C6AD9] mt-auto"
-            onClick={handleInitialize}
-            disabled={initBet.isPending}
-          >
-            {initBet.isPending ? (
-              <div className="flex items-center gap-2">
-                <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                <span>Initializing...</span>
-              </div>
-            ) : (
-              "Initialize Market"
-            )}
-          </Button>
+          <div>
+            <Button
+              className="w-full bg-[#6E56CF] hover:bg-[#7C6AD9] mt-auto"
+              onClick={handleInitialize}
+              disabled={initBet.isPending}
+            >
+              {initBet.isPending ? (
+                <div className="flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  <span>Initializing...</span>
+                </div>
+              ) : (
+                "Initialize Market"
+              )}
+            </Button>
+            <div className="flex justify-between items-center"></div>
+            <span className="text-sm text-gray-400">Creator: {creator}</span>
+          </div>
         ) : (
           <div className="space-y-6">
             <div className="space-y-2">
@@ -230,18 +250,33 @@ function PmAmmCard({ account }: { account: PublicKey }) {
             <div className="grid grid-cols-2 gap-4">
               <Button
                 className="bg-[#2B9F6A] hover:bg-[#238B59] text-white font-medium py-5"
-                onClick={handleBuy}
+                onClick={handleBuyYes}
                 disabled={amount <= 0}
               >
-                Buy Yes
+                <div className="flex flex-col items-center">
+                  <span>Buy Yes</span>
+                  {yesPrice && (
+                    <span className="text-sm opacity-80">
+                      Price: {yesPrice} SOL
+                    </span>
+                  )}
+                </div>
               </Button>
               <Button
                 className="bg-[#E54D2E] hover:bg-[#CA4425] text-white font-medium py-5"
-                onClick={handleSell}
+                onClick={handleBuyNo}
                 disabled={amount <= 0}
               >
-                Buy No
+                <div className="flex flex-col items-center">
+                  <span>Buy No</span>
+                  {noPrice && (
+                    <span className="text-sm opacity-80">
+                      Price: {noPrice} SOL
+                    </span>
+                  )}
+                </div>
               </Button>
+              <span className="text-sm text-gray-400">Creator: {creator}</span>
             </div>
           </div>
         )}

@@ -91,6 +91,48 @@ export function usePmAmmProgramAccount({ account }: { account: PublicKey }) {
     queryFn: () => program.account.bet.fetch(account),
   });
 
+  const getYesPrice = useQuery({
+    queryKey: ["bet", "getYesPrice", { cluster, account }],
+    queryFn: async () => {
+      const simulation = await program.methods
+        .getPrice(0)
+        .accounts({ bet: account })
+        .simulate();
+
+      const returnLogEntry = simulation.raw.find((log) =>
+        log.startsWith("Program return: ")
+      );
+      const encodedData = returnLogEntry?.split(" ")[3];
+
+      const decodedData = Buffer.from(encodedData ?? "", "base64");
+      const returnValue = new BN(decodedData, "le");
+      console.log("returnValue", returnValue.toString());
+      return returnValue.toString();
+    },
+    enabled: !!accountQuery.data?.isInitialized,
+  });
+
+  const getNoPrice = useQuery({
+    queryKey: ["bet", "getNoPrice", { cluster, account }],
+    queryFn: async () => {
+      const simulation = await program.methods
+        .getPrice(1)
+        .accounts({ bet: account })
+        .simulate();
+
+      const returnLogEntry = simulation.raw.find((log) =>
+        log.startsWith("Program return: ")
+      );
+      const encodedData = returnLogEntry?.split(" ")[3];
+
+      const decodedData = Buffer.from(encodedData ?? "", "base64");
+      const returnValue = new BN(decodedData, "le");
+      console.log("returnValue", returnValue.toString());
+      return returnValue.toString();
+    },
+    enabled: !!accountQuery.data?.isInitialized,
+  });
+
   const initBet = useMutation({
     mutationKey: ["bet", "init", { cluster }],
     mutationFn: async ({ betId }: { betId: number }) => {
@@ -149,11 +191,23 @@ export function usePmAmmProgramAccount({ account }: { account: PublicKey }) {
       outcome: number;
       amount: number;
     }) => {
+      const betAccount = await program.account.bet.fetch(account);
+      const creator = betAccount.creator;
+      // Get the bet account first to find the creator
+      const [betAccountKey] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("bet"),
+          new BN(betId).toArrayLike(Buffer, "le", 8),
+          Buffer.from(creator.toBuffer()),
+        ],
+        program.programId
+      );
+
       const [mintYesKey] = PublicKey.findProgramAddressSync(
         [
           Buffer.from("mint_yes"),
           new BN(betId).toArrayLike(Buffer, "le", 8),
-          Buffer.from(provider.wallet.publicKey.toBuffer()),
+          Buffer.from(creator.toBuffer()),
         ],
         program.programId
       );
@@ -161,15 +215,7 @@ export function usePmAmmProgramAccount({ account }: { account: PublicKey }) {
         [
           Buffer.from("mint_no"),
           new BN(betId).toArrayLike(Buffer, "le", 8),
-          Buffer.from(provider.wallet.publicKey.toBuffer()),
-        ],
-        program.programId
-      );
-      const [betAccountKey] = PublicKey.findProgramAddressSync(
-        [
-          Buffer.from("bet"),
-          new BN(betId).toArrayLike(Buffer, "le", 8),
-          Buffer.from(provider.wallet.publicKey.toBuffer()),
+          Buffer.from(creator.toBuffer()),
         ],
         program.programId
       );
@@ -188,11 +234,14 @@ export function usePmAmmProgramAccount({ account }: { account: PublicKey }) {
       transactionToast(signature);
       return accountQuery.refetch();
     },
+    onError: () => toast.error("Failed to buy yes shares"),
   });
 
   return {
     accountQuery,
     initBet,
     buyYes,
+    getYesPrice,
+    getNoPrice,
   };
 }
