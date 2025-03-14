@@ -179,6 +179,13 @@ describe("pm_amm", () => {
       .signers([user])
       .rpc({ commitment: "confirmed" });
 
+    const getPrice = await program.methods
+      .getPrice(0)
+      .accountsPartial({ bet: betAccountKey })
+      .rpc({ commitment: "confirmed" });
+
+    console.log("--------------------------------getPrice", getPrice);
+
     betAccount = await program.account.bet.fetch(betAccountKey, "confirmed");
     expect(betAccount.isInitialized).toBe(true);
     expect(betAccount.betId.toNumber()).toBe(1);
@@ -437,6 +444,18 @@ describe("pm_amm", () => {
       .signers([user])
       .rpc({ commitment: "confirmed" });
 
+    let getPriceYes = await program.methods
+      .getPrice(0)
+      .accountsPartial({ bet: newBetAccountKey })
+      .rpc({ commitment: "confirmed" });
+
+    let getPriceNo = await program.methods
+      .getPrice(1)
+      .accountsPartial({ bet: newBetAccountKey })
+      .rpc({ commitment: "confirmed" });
+
+    console.log("getPriceNo", getPriceNo);
+
     // Participant0 buys 1000 shares of outcome 0
     await program.methods
       .buy(new anchor.BN(2), 0, new anchor.BN(1000))
@@ -449,6 +468,20 @@ describe("pm_amm", () => {
       })
       .signers([participant0])
       .rpc({ commitment: "confirmed" });
+
+    getPriceYes = await program.methods
+      .getPrice(0)
+      .accountsPartial({ bet: newBetAccountKey })
+      .rpc({ commitment: "confirmed" });
+
+    console.log("getPriceYes", getPriceYes);
+
+    getPriceNo = await program.methods
+      .getPrice(1)
+      .accountsPartial({ bet: newBetAccountKey })
+      .rpc({ commitment: "confirmed" });
+
+    console.log("getPriceNo", getPriceNo);
 
     // Participant1 buys 500 shares of outcome 1
     await program.methods
