@@ -9,6 +9,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import { BN } from "@coral-xyz/anchor";
 
 export function PmAmmCreate() {
   const { createBet } = usePmAmmProgram();
@@ -143,10 +144,17 @@ export function PmAmmList() {
 
 function PmAmmCard({ account }: { account: PublicKey }) {
   const [amount, setAmount] = useState(0);
-  const { accountQuery, initBet, buyYes, getYesPrice, getNoPrice } =
-    usePmAmmProgramAccount({
-      account,
-    });
+  const {
+    accountQuery,
+    initBet,
+    buy,
+    getYesPrice,
+    getNoPrice,
+    claim,
+    program,
+  } = usePmAmmProgramAccount({
+    account,
+  });
 
   const betId = useMemo(
     () => accountQuery.data?.betId ?? 0,
@@ -173,6 +181,13 @@ function PmAmmCard({ account }: { account: PublicKey }) {
     [accountQuery.data?.isInitialized]
   );
 
+  const isExpired = useMemo(() => {
+    const now = Date.now();
+    const expiration = accountQuery.data?.expirationAt ?? 0;
+    if (now > parseInt(expiration.toString()) * 1000) return true;
+    return false;
+  }, [accountQuery.data?.expirationAt]);
+
   const yesPrice = useMemo(() => {
     if (!getYesPrice.data) return null;
     return (Number(getYesPrice.data) / 1_000_000_000).toFixed(2);
@@ -188,11 +203,18 @@ function PmAmmCard({ account }: { account: PublicKey }) {
   };
 
   const handleBuyYes = () => {
-    buyYes.mutateAsync({ betId: Number(betId), outcome: 0, amount });
+    buy.mutateAsync({ betId: Number(betId), outcome: 0, amount });
   };
 
   const handleBuyNo = () => {
-    // buyNo.mutateAsync({ betId: Number(betId), outcome: 1, amount });
+    console.log("Buying no");
+    buy.mutateAsync({ betId: Number(betId), outcome: 1, amount });
+  };
+
+  const handleClaim = () => {
+    // TODO: Implement claim functionality
+    console.log("Claiming prize for bet", betId);
+    claim.mutate;
   };
 
   expiration = parseInt(expiration.toString());
@@ -233,6 +255,19 @@ function PmAmmCard({ account }: { account: PublicKey }) {
               )}
             </Button>
             <div className="flex justify-between items-center"></div>
+            <span className="text-sm text-gray-400">Creator: {creator}</span>
+          </div>
+        ) : isExpired ? (
+          <div className="space-y-6">
+            <div className="text-center text-yellow-400 mb-4">
+              This market has expired
+            </div>
+            <Button
+              className="w-full bg-[#6E56CF] hover:bg-[#7C6AD9] text-white font-medium py-5"
+              onClick={handleClaim}
+            >
+              Claim Prize
+            </Button>
             <span className="text-sm text-gray-400">Creator: {creator}</span>
           </div>
         ) : (

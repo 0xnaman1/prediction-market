@@ -54,8 +54,8 @@ export function usePmAmmProgram() {
 
   const createBet = useMutation<string, Error, CreateBetArgs>({
     mutationKey: ["bet", "createBet", { cluster }],
-    mutationFn: ({ betId, initialLiq, betPrompt, expirationAt }) =>
-      program.methods
+    mutationFn: ({ betId, initialLiq, betPrompt, expirationAt }) => {
+      return program.methods
         .createBetAccount(
           new BN(betId),
           new BN(initialLiq),
@@ -63,7 +63,8 @@ export function usePmAmmProgram() {
           new BN(expirationAt)
         )
         .accounts({ tokenProgram: TOKEN_PROGRAM_ID })
-        .rpc(),
+        .rpc();
+    },
     onSuccess: (signature) => {
       transactionToast(signature);
       return accounts.refetch();
@@ -180,7 +181,7 @@ export function usePmAmmProgramAccount({ account }: { account: PublicKey }) {
     onError: () => toast.error("Failed to initialize bet"),
   });
 
-  const buyYes = useMutation({
+  const buy = useMutation({
     mutationKey: ["bet", "buyYes", { cluster }],
     mutationFn: async ({
       betId,
@@ -237,10 +238,68 @@ export function usePmAmmProgramAccount({ account }: { account: PublicKey }) {
     onError: () => toast.error("Failed to buy yes shares"),
   });
 
+  const claim = useMutation({
+    mutationKey: ["bet", "claim", { cluster }],
+    mutationFn: async ({
+      betId,
+      outcome,
+      amount,
+    }: {
+      betId: number;
+      outcome: number;
+      amount: number;
+    }) => {
+      const betAccount = await program.account.bet.fetch(account);
+      const creator = betAccount.creator;
+      // Get the bet account first to find the creator
+      const [betAccountKey] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("bet"),
+          new BN(betId).toArrayLike(Buffer, "le", 8),
+          Buffer.from(creator.toBuffer()),
+        ],
+        program.programId
+      );
+
+      const [mintYesKey] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("mint_yes"),
+          new BN(betId).toArrayLike(Buffer, "le", 8),
+          Buffer.from(creator.toBuffer()),
+        ],
+        program.programId
+      );
+      const [mintNoKey] = PublicKey.findProgramAddressSync(
+        [
+          Buffer.from("mint_no"),
+          new BN(betId).toArrayLike(Buffer, "le", 8),
+          Buffer.from(creator.toBuffer()),
+        ],
+        program.programId
+      );
+
+      return program.methods
+        .withdrawPostSettle(new BN(betId), outcome, new BN(amount))
+        .accountsPartial({
+          bet: betAccountKey,
+          mintYes: mintYesKey,
+          mintNo: mintNoKey,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .rpc();
+    },
+    onSuccess: (signature) => {
+      transactionToast(signature);
+      return accountQuery.refetch();
+    },
+    onError: () => toast.error("Failed to claim prize"),
+  });
+
   return {
     accountQuery,
     initBet,
-    buyYes,
+    buy,
+    claim,
     getYesPrice,
     getNoPrice,
   };
