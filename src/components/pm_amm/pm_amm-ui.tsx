@@ -144,17 +144,10 @@ export function PmAmmList() {
 
 function PmAmmCard({ account }: { account: PublicKey }) {
   const [amount, setAmount] = useState(0);
-  const {
-    accountQuery,
-    initBet,
-    buy,
-    getYesPrice,
-    getNoPrice,
-    claim,
-    program,
-  } = usePmAmmProgramAccount({
-    account,
-  });
+  const { accountQuery, initBet, buy, getYesPrice, getNoPrice, claim } =
+    usePmAmmProgramAccount({
+      account,
+    });
 
   const betId = useMemo(
     () => accountQuery.data?.betId ?? 0,
