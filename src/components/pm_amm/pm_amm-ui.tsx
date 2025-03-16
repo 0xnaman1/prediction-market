@@ -19,18 +19,31 @@ export function PmAmmCreate() {
   const [initialLiq, setInitialLiq] = useState(0);
   const { publicKey } = useWallet();
 
+  const MIN_LIQUIDITY = 1000000; // Minimum liquidity value
+
   const ifFormValid =
-    betPrompt.length > 0 && expirationAt > 0 && initialLiq > 0;
+    betPrompt.length > 0 && expirationAt > 0 && initialLiq >= MIN_LIQUIDITY;
 
   const handleSubmit = () => {
+    const randomBetId =
+      Math.floor(Date.now() / 1000) + Math.floor(Math.random() * 10000);
+    setBetId(randomBetId);
+
     if (publicKey && ifFormValid) {
       createBet.mutateAsync({
-        betId,
+        betId: randomBetId,
         betPrompt,
         expirationAt,
         initialLiq,
       });
     }
+  };
+
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedDate = new Date(e.target.value);
+    console.log(selectedDate);
+    console.log(Math.floor(selectedDate.getTime() / 1000));
+    setExpirationAt(Math.floor(selectedDate.getTime() / 1000)); // Convert to Unix timestamp in seconds
   };
 
   if (!publicKey) {
@@ -47,35 +60,67 @@ export function PmAmmCreate() {
         <CardTitle className="text-white">Create New Market</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Input
+        {/* <Input
           name="betId"
           type="text"
           placeholder="Market ID"
           value={betId}
           onChange={(e) => setBetId(parseInt(e.target.value))}
           className="bg-[#232830] border-[#2D3139] text-white"
-        />
-        <Input
-          type="text"
-          placeholder="What's your prediction?"
-          value={betPrompt}
-          onChange={(e) => setBetPrompt(e.target.value)}
-          className="bg-[#232830] border-[#2D3139] text-white"
-        />
-        <Input
-          type="text"
-          placeholder="Expiration Time"
-          value={expirationAt}
-          onChange={(e) => setExpirationAt(parseInt(e.target.value))}
-          className="bg-[#232830] border-[#2D3139] text-white"
-        />
-        <Input
-          type="text"
-          placeholder="Initial Liquidity"
-          value={initialLiq}
-          onChange={(e) => setInitialLiq(parseInt(e.target.value))}
-          className="bg-[#232830] border-[#2D3139] text-white"
-        />
+        /> */}
+        <div className="mb-4">
+          <label
+            htmlFor="prediction"
+            className="block text-sm font-medium text-white"
+          >
+            Prediction
+          </label>
+          <Input
+            id="prediction"
+            type="text"
+            placeholder="What's your prediction?"
+            value={betPrompt}
+            onChange={(e) => setBetPrompt(e.target.value)}
+            className="mt-1 bg-[#232830] border-[#2D3139] text-white"
+          />
+        </div>
+        <div className="mb-4">
+          <label
+            htmlFor="expiration"
+            className="block text-sm font-medium text-white"
+          >
+            Expiration Time
+          </label>
+          <Input
+            id="expiration"
+            type="date"
+            placeholder="Expiration Time"
+            onChange={handleDateChange}
+            className="mt-1 bg-[#232830] border-[#2D3139] text-white"
+          />
+        </div>
+        <div className="mb-4">
+          <label
+            htmlFor="liquidity"
+            className="block text-sm font-medium text-white"
+          >
+            Initial Liquidity
+          </label>
+          <Input
+            id="liquidity"
+            type="text"
+            placeholder="Initial Liquidity"
+            value={initialLiq}
+            onChange={(e) => {
+              const value = e.target.value;
+              setInitialLiq(value === "" ? 0 : parseInt(value));
+            }}
+            className="mt-1 bg-[#232830] border-[#2D3139] text-white"
+          />
+        </div>
+        <div className="text-sm text-gray-400">
+          Minimum liquidity is {MIN_LIQUIDITY.toLocaleString()}.
+        </div>
         <Button
           className="w-full bg-[#6E56CF] hover:bg-[#7C6AD9] text-white"
           onClick={handleSubmit}
@@ -181,6 +226,10 @@ function PmAmmCard({ account }: { account: PublicKey }) {
     return false;
   }, [accountQuery.data?.expirationAt]);
 
+  const sideWon = useMemo(() => {
+    return accountQuery.data?.sideWon;
+  }, [accountQuery.data?.sideWon]);
+
   const yesPrice = useMemo(() => {
     if (!getYesPrice.data) return null;
     return (Number(getYesPrice.data) / 1_000_000_000).toFixed(2);
@@ -205,9 +254,8 @@ function PmAmmCard({ account }: { account: PublicKey }) {
   };
 
   const handleClaim = () => {
-    // TODO: Implement claim functionality
-    console.log("Claiming prize for bet", betId);
-    claim.mutate;
+    // claim.mutateAsync({ betId: Number(betId) });
+    claim.mutateAsync({ betId: Number(betId) });
   };
 
   expiration = parseInt(expiration.toString());
@@ -248,20 +296,45 @@ function PmAmmCard({ account }: { account: PublicKey }) {
               )}
             </Button>
             <div className="flex justify-between items-center"></div>
-            <span className="text-sm text-gray-400">Creator: {creator}</span>
+            <div className="space-y-1">
+              <span className="text-sm text-gray-400 block">
+                Creator: {creator}
+              </span>
+              <span className="text-sm text-gray-400 block">
+                Account: {account.toString()}
+              </span>
+            </div>
           </div>
         ) : isExpired ? (
           <div className="space-y-6">
             <div className="text-center text-yellow-400 mb-4">
               This market has expired
             </div>
-            <Button
-              className="w-full bg-[#6E56CF] hover:bg-[#7C6AD9] text-white font-medium py-5"
-              onClick={handleClaim}
-            >
-              Claim Prize
-            </Button>
-            <span className="text-sm text-gray-400">Creator: {creator}</span>
+            {sideWon !== undefined && sideWon !== null ? (
+              <>
+                <div className="text-center text-white mb-4">
+                  Result: {sideWon === 0 ? "Yes" : "No"} won!
+                </div>
+                <Button
+                  className="w-full bg-[#6E56CF] hover:bg-[#7C6AD9] text-white font-medium py-5"
+                  onClick={handleClaim}
+                >
+                  Claim Prize
+                </Button>
+              </>
+            ) : (
+              <div className="text-center text-gray-400">
+                Market is yet to be resolved
+              </div>
+            )}
+            <div className="space-y-1">
+              <span className="text-sm text-gray-400 block">
+                Creator: {creator}
+              </span>
+              <span className="text-sm text-gray-400 block">
+                Account: {account.toString()}
+              </span>
+            </div>
           </div>
         ) : (
           <div className="space-y-6">
@@ -304,7 +377,14 @@ function PmAmmCard({ account }: { account: PublicKey }) {
                   )}
                 </div>
               </Button>
-              <span className="text-sm text-gray-400">Creator: {creator}</span>
+            </div>
+            <div className="space-y-1">
+              <span className="text-sm text-gray-400 block">
+                Creator: {creator}
+              </span>
+              <span className="text-sm text-gray-400 block">
+                Account: {account.toString()}
+              </span>
             </div>
           </div>
         )}

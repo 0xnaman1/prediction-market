@@ -55,6 +55,7 @@ export function usePmAmmProgram() {
   const createBet = useMutation<string, Error, CreateBetArgs>({
     mutationKey: ["bet", "createBet", { cluster }],
     mutationFn: ({ betId, initialLiq, betPrompt, expirationAt }) => {
+      console.log("betId", betId);
       return program.methods
         .createBetAccount(
           new BN(betId),
@@ -240,15 +241,7 @@ export function usePmAmmProgramAccount({ account }: { account: PublicKey }) {
 
   const claim = useMutation({
     mutationKey: ["bet", "claim", { cluster }],
-    mutationFn: async ({
-      betId,
-      outcome,
-      amount,
-    }: {
-      betId: number;
-      outcome: number;
-      amount: number;
-    }) => {
+    mutationFn: async ({ betId }: { betId: number }) => {
       const betAccount = await program.account.bet.fetch(account);
       const creator = betAccount.creator;
       // Get the bet account first to find the creator
@@ -278,8 +271,31 @@ export function usePmAmmProgramAccount({ account }: { account: PublicKey }) {
         program.programId
       );
 
+      const sideWon = betAccount.sideWon ?? 0;
+      const winTokenKey = sideWon === 0 ? mintYesKey : mintNoKey;
+
+      const destinationKey = await getAssociatedTokenAddress(
+        winTokenKey,
+        provider.wallet.publicKey
+      );
+
+      const destinationAccount = await getAccount(
+        provider.connection,
+        destinationKey
+      );
+
+      const amount = destinationAccount.amount.toString();
+
+      console.log("sideWon", sideWon);
+      console.log("amount", amount);
+      console.log(destinationKey.toBase58());
+
+      if (amount === "0") {
+        throw new Error("No amount to claim");
+      }
+
       return program.methods
-        .withdrawPostSettle(new BN(betId), outcome, new BN(amount))
+        .withdrawPostSettle(new BN(betId), sideWon, new BN(amount))
         .accountsPartial({
           bet: betAccountKey,
           mintYes: mintYesKey,
@@ -292,7 +308,7 @@ export function usePmAmmProgramAccount({ account }: { account: PublicKey }) {
       transactionToast(signature);
       return accountQuery.refetch();
     },
-    onError: () => toast.error("Failed to claim prize"),
+    onError: (e) => toast.error(`Failed to claim prize: ${e.message}`),
   });
 
   return {
