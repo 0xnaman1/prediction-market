@@ -313,7 +313,7 @@ function PmAmmCard({ account }: { account: PublicKey }) {
             {sideWon !== undefined && sideWon !== null ? (
               <>
                 <div className="text-center text-white mb-4">
-                  Result: {sideWon === 0 ? "Yes" : "No"} won!
+                  Result: {sideWon === 1 ? "Yes" : "No"} won!
                 </div>
                 <Button
                   className="w-full bg-[#6E56CF] hover:bg-[#7C6AD9] text-white font-medium py-5"
@@ -358,7 +358,7 @@ function PmAmmCard({ account }: { account: PublicKey }) {
                   <span>Buy Yes</span>
                   {yesPrice && (
                     <span className="text-sm opacity-80">
-                      Price: {yesPrice} SOL
+                      Price: {yesPrice} lamports
                     </span>
                   )}
                 </div>
@@ -372,7 +372,7 @@ function PmAmmCard({ account }: { account: PublicKey }) {
                   <span>Buy No</span>
                   {noPrice && (
                     <span className="text-sm opacity-80">
-                      Price: {noPrice} SOL
+                      Price: {noPrice} lamports
                     </span>
                   )}
                 </div>

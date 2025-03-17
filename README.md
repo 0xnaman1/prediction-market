@@ -1,4 +1,20 @@
-# legacy-pm_amm
+# Clairvoy - a prediction market resolved by AI
+
+Clairvoy is an AI-powered prediction market live on the Sonic Frontier V1 testnet. It operates on a fixed product market maker model, where $x * y = k$, with $x$ and $y$ representing the liquidity of different shares, and $k$ remaining constant.
+
+Here's an abstracted program architecture
+
+![Image](https://github.com/user-attachments/assets/5183c8cb-d4ff-4170-bf89-723453601ddc)
+
+Anyone can create a new market with a prompt and initialise it with a minimum of `1_000_000` lamports. This creates a new market with the chosen expiry that would be resolved as and when expiry is reached. 
+
+The resolution is automatic and managed by an agent swarm. The following is the basic agent swarm architecture we use to resolve the market. Currently we only support politics and prices.
+
+![Image](https://github.com/user-attachments/assets/e4ce08b7-676d-4513-8919-4c1a7a7b0cee)
+
+### How is market resolved?
+
+The server runs an event listener for the anchor events which catches the emitted events and runs a cron job to settle them using the agent swarm. The market prompt is passed as a state to the graph agent which using the context of the current information, resolves the market as Yes or No.
 
 ## Getting Started
 
@@ -28,69 +44,5 @@ pnpm install
 #### Start the web app
 
 ```
-pnpm dev
-```
-
-## Apps
-
-### anchor
-
-This is a Solana program written in Rust using the Anchor framework.
-
-#### Commands
-
-You can use any normal anchor commands. Either move to the `anchor` directory and run the `anchor` command or prefix the
-command with `pnpm`, eg: `pnpm anchor`.
-
-#### Sync the program id:
-
-Running this command will create a new keypair in the `anchor/target/deploy` directory and save the address to the
-Anchor config file and update the `declare_id!` macro in the `./src/lib.rs` file of the program.
-
-You will manually need to update the constant in `anchor/lib/counter-exports.ts` to match the new program id.
-
-```shell
-pnpm anchor keys sync
-```
-
-#### Build the program:
-
-```shell
-pnpm anchor-build
-```
-
-#### Start the test validator with the program deployed:
-
-```shell
-pnpm anchor-localnet
-```
-
-#### Run the tests
-
-```shell
-pnpm anchor-test
-```
-
-#### Deploy to Devnet
-
-```shell
-pnpm anchor deploy --provider.cluster devnet
-```
-
-### web
-
-This is a React app that uses the Anchor generated client to interact with the Solana program.
-
-#### Commands
-
-Start the web app
-
-```shell
-pnpm dev
-```
-
-Build the web app
-
-```shell
-pnpm build
+pnpm run dev
 ```

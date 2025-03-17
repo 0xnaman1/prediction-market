@@ -13,7 +13,10 @@ export default function PmAmmFeature() {
 
   return publicKey ? (
     <div>
-      <AppHero title="PmAmm" subtitle={"Create a new bet account here."}>
+      <AppHero
+        title="Market creation"
+        subtitle={"Create a new bet account here."}
+      >
         <p className="mb-6">
           <ExplorerLink
             path={`account/${programId}`}
