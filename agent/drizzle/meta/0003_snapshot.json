@@ -1,0 +1,103 @@
+{
+  "id": "45e72061-7178-4184-8c2b-51e11e937a21",
+  "prevId": "c8e4dca7-790e-4c39-8558-f9949071ebaf",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.bets": {
+      "name": "bets",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "bigint",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "betCategoryType": {
+          "name": "betCategoryType",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prompt": {
+          "name": "prompt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "startTimestamp": {
+          "name": "startTimestamp",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "endTimestamp": {
+          "name": "endTimestamp",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "isExpired": {
+          "name": "isExpired",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "isResolved": {
+          "name": "isResolved",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "creator": {
+          "name": "creator",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "settleTx": {
+          "name": "settleTx",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "resolution": {
+          "name": "resolution",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'not_settled'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.resolution": {
+      "name": "resolution",
+      "schema": "public",
+      "values": [
+        "no",
+        "yes",
+        "not_resolved"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

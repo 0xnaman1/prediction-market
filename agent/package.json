@@ -1,0 +1,50 @@
+{
+  "name": "@clairvoy/agent",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "start": "pnpm drizzle-kit migrate; tsx src/index.ts",
+    "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/index.ts",
+    "lint": "eslint . --ext .ts",
+    "prepare": "npm run build"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@9.9.0+sha512.60c18acd138bff695d339be6ad13f7e936eea6745660d4cc4a776d5247c540d0edee1a563695c183a66eb917ef88f2b4feb1fc25f32a7adcadc7aaf3438e99c1",
+  "devDependencies": {
+    "@types/node": "^22.8.2",
+    "@types/pg": "^8.11.11",
+    "@typescript-eslint/eslint-plugin": "^8.12.1",
+    "@typescript-eslint/parser": "^8.12.1",
+    "drizzle-kit": "^0.30.5",
+    "eslint": "^9.13.0",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "^0.30.1",
+    "@hono/node-server": "^1.12.2",
+    "@hono/zod-validator": "^0.2.2",
+    "@langchain/community": "^0.3.34",
+    "@langchain/core": "^0.3.28",
+    "@langchain/langgraph": "^0.2.55",
+    "@langchain/openai": "^0.3.16",
+    "@solana/web3.js": "^1.98.0",
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.40.0",
+    "hono": "^4.5.10",
+    "pg": "^8.14.0",
+    "solana-agent-kit": "^1.3.8",
+    "zod": "^3.24.1"
+  }
+}

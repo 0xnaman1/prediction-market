@@ -1,0 +1,91 @@
+{
+  "id": "76ee0c93-9532-4159-93d7-2d26014a971e",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.bets": {
+      "name": "bets",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "integer",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "betCategoryType": {
+          "name": "betCategoryType",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prompt": {
+          "name": "prompt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "startTimestamp": {
+          "name": "startTimestamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "endTimestamp": {
+          "name": "endTimestamp",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "isExpired": {
+          "name": "isExpired",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "isResolved": {
+          "name": "isResolved",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "resolution": {
+          "name": "resolution",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'not_resolved'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.resolution": {
+      "name": "resolution",
+      "schema": "public",
+      "values": [
+        "no",
+        "yes",
+        "not_resolved"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

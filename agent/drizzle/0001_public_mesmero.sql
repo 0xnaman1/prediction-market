@@ -1,0 +1,1 @@
+ALTER TABLE "bets" ADD COLUMN "creator" varchar(255) NOT NULL;
